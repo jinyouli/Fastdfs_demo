@@ -54,6 +54,11 @@ static const int DOWNLOAD_NUM = 256000;
             {
                 printf("download_by_filename err,errno = %d\n",retn);
             }
+            else{
+                if (i == fileSize / DOWNLOAD_NUM - 1) {
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"downloadFinish" object:nil];
+                }
+            }
         }
     }
     else{
@@ -62,13 +67,16 @@ static const int DOWNLOAD_NUM = 256000;
         {
             printf("download_by_filename err,errno = %d\n",retn);
         }
+        else{
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"downloadFinish" object:nil];
+        }
     }
     
     //    downfileSize = file_size2([filePath UTF8String]);
     //    NSLog(@"存在 == %d",downfileSize);
 }
 
-+ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath
++ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath fileType:(char *)fileType
 {
     int retn = 0;
     
@@ -80,7 +88,7 @@ static const int DOWNLOAD_NUM = 256000;
     char buff[100];
     
     if (isFirst) {
-        fdfs_append_by_filename(filename,file_id1,clientname,buff,0);
+        fdfs_append_by_filename(filename,file_id1,clientname,buff,0,fileType);
     }
     else{
         const char *src = uploadFileId;
@@ -92,6 +100,7 @@ static const int DOWNLOAD_NUM = 256000;
     int downfileSize = 0;
     downfileSize = fdfs_getFileSize_filename(filename,file_id1,clientname);
     
+    printf("本地文件大小 == %d\n",fileSize);
     int totalFilesize = 0;
     if ([[NSFileManager defaultManager] fileExistsAtPath:filePath] == YES) {
         totalFilesize = file_size2([filePath UTF8String]);
@@ -136,6 +145,9 @@ static const int DOWNLOAD_NUM = 256000;
                 if(0 != retn)
                 {
                     printf("upload_by_filename err,errno = %d\n",retn);
+                }else{
+                    NSString *string_content = [[NSString alloc] initWithCString:file_id1 encoding:NSASCIIStringEncoding];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"uploadFinish" object:string_content];
                 }
                 
             }else{
@@ -143,6 +155,7 @@ static const int DOWNLOAD_NUM = 256000;
                 if(0 != retn)
                 {
                     printf("upload_by_filename err,errno = %d\n",retn);
+                    
                 }
                 printf("file_id = %s\n",file_id1);
             }
@@ -153,6 +166,10 @@ static const int DOWNLOAD_NUM = 256000;
         if(0 != retn)
         {
             printf("upload_by_filename err,errno = %d\n",retn);
+        }
+        else{
+            NSString *string_content = [[NSString alloc] initWithCString:file_id1 encoding:NSASCIIStringEncoding];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"uploadFinish" object:string_content];
         }
         printf("file_id = %s\n",file_id1);
     }

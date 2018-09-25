@@ -138,7 +138,7 @@ int fdfs_uploadAppend_by_filename(const char *filename, char *file_id, const cha
 
 
 // 断点续传
-int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize)
+int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize, char *fileType)
 {
     const char *local_filename;
     char group_name[FDFS_GROUP_NAME_MAX_LEN + 1];
@@ -179,7 +179,7 @@ int fdfs_append_by_filename(const char *filename, char *file_id, const char *cli
     }
     
     //上传文件,得到file_id
-    result = storage_upload_appender_by_filebuff1(pTrackerServer, &storageServer, store_path_index, fileBuff, fileSize, "jpg", NULL, 0, group_name, file_id);
+    result = storage_upload_appender_by_filebuff1(pTrackerServer, &storageServer, store_path_index, fileBuff, fileSize, fileType, NULL, 0, group_name, file_id);
 
     if (result == 0)
     {
@@ -243,7 +243,7 @@ int file_size2(const char* filename)
 {
     struct stat statbuf;
     stat(filename,&statbuf);
-    long size = (int)statbuf.st_size;    
+    long size = (int)statbuf.st_size;
     return (int)size;
 }
 

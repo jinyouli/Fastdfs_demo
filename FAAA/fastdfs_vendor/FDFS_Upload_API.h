@@ -25,7 +25,7 @@ extern "C" {
 #endif
     int fdfs_upload_by_filename(const char *filename,char *file_id, const char *clientName);
     int fdfs_getFileSize_filename(const char *filename, char *file_id, const char *clientName);
-    int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize);
+    int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize, char *fileType);
     int fdfs_uploadAppend_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize);
     int file_size2(const char* filename);
     

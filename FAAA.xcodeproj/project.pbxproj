@@ -13,7 +13,6 @@
 		46762F441F9DF07A00BDBB46 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 46762F431F9DF07A00BDBB46 /* Assets.xcassets */; };
 		46762F471F9DF07A00BDBB46 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 46762F451F9DF07A00BDBB46 /* LaunchScreen.storyboard */; };
 		46762F4A1F9DF07A00BDBB46 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 46762F491F9DF07A00BDBB46 /* main.m */; };
-		E9E674FD21549B0000D2A346 /* client.conf in Resources */ = {isa = PBXBuildFile; fileRef = E9E674CD21549B0000D2A346 /* client.conf */; };
 		E9E674FE21549B0000D2A346 /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = E9E674D021549B0000D2A346 /* base64.c */; };
 		E9E674FF21549B0000D2A346 /* client.conf in Resources */ = {isa = PBXBuildFile; fileRef = E9E674D221549B0000D2A346 /* client.conf */; };
 		E9E6750021549B0000D2A346 /* client_func.c in Sources */ = {isa = PBXBuildFile; fileRef = E9E674D321549B0000D2A346 /* client_func.c */; };
@@ -51,7 +50,6 @@
 		46762F8B1F9DF50300BDBB46 /* libstdc++.6.0.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libstdc++.6.0.9.tbd"; path = "usr/lib/libstdc++.6.0.9.tbd"; sourceTree = SDKROOT; };
 		46762F8D1F9DF5CA00BDBB46 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		46762F8F1F9DF5EB00BDBB46 /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
-		E9E674CD21549B0000D2A346 /* client.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = client.conf; sourceTree = "<group>"; };
 		E9E674CF21549B0000D2A346 /* _os_bits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _os_bits.h; sourceTree = "<group>"; };
 		E9E674D021549B0000D2A346 /* base64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64.c; sourceTree = "<group>"; };
 		E9E674D121549B0000D2A346 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
@@ -160,7 +158,6 @@
 		E9E674CC21549B0000D2A346 /* fastdfs_vendor */ = {
 			isa = PBXGroup;
 			children = (
-				E9E674CD21549B0000D2A346 /* client.conf */,
 				E9E674CE21549B0000D2A346 /* FastDFS_Lib */,
 				E9E674F721549B0000D2A346 /* FDFS_Download_API.c */,
 				E9E674F821549B0000D2A346 /* FDFS_Download_API.h */,
@@ -278,7 +275,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAB5AA38212EBA860061D512 /* icon_demo.abc in Resources */,
-				E9E674FD21549B0000D2A346 /* client.conf in Resources */,
 				E9E674FF21549B0000D2A346 /* client.conf in Resources */,
 				46762F471F9DF07A00BDBB46 /* LaunchScreen.storyboard in Resources */,
 				46762F441F9DF07A00BDBB46 /* Assets.xcassets in Resources */,

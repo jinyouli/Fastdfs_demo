@@ -13,6 +13,6 @@
 @interface SYCommon : NSObject
 
 + (void)FDFS_download:(char *)downloadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath;
-+ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath;
++ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath fileType:(char *)fileType;
 
 @end
