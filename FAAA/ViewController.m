@@ -31,7 +31,59 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadFinish) name:@"downloadFinish" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(uploadFinish:) name:@"uploadFinish" object:nil];
+    [self request];
+}
+
+- (void)request
+{
+    NSString *urlStr = @"http://192.168.0.1:6001/gateway/user/login";
+    //如果字符串里面含有中文要进行转码
+    //urlStr = [urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    //2.设置请求路径
+    NSURL *url = [NSURL URLWithString:urlStr];
     
+    //3.创建请求
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url]; // 默认就是GET请求
+    request.timeoutInterval = 5; // 设置请求超时
+    request.HTTPMethod = @"POST"; // 设置为POST请求
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    //4.设置请求体
+    NSString *param = [NSString stringWithFormat:@"\{\"username\"\:\"admin\"\,\"password\"\:\"654321\"\}"];
+    request.HTTPBody = [param dataUsingEncoding:NSUTF8StringEncoding];
+    
+    //5.发送请求
+    NSOperationQueue *queue = [NSOperationQueue mainQueue];
+    [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {  // 当请求结束的时候调用
+        
+        NSDictionary *dict = [self dictionaryWithJsonString:[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding]];
+        
+        char file_id[500] = {};
+        NSDictionary *dataDict = dict[@"data"];
+        //NSLog(@"返回数据 == %@",dataDict);
+        
+        //fdfs_upload_by_filename2(filename, file_id, clientname, fileKey, userId, timestamp);
+        
+        [self upLoad:[NSString stringWithFormat:@"%@",dataDict[@"fileKey"]] userId:[NSString stringWithFormat:@"%@",dataDict[@"userId"]] timestamp:[NSString stringWithFormat:@"%@",dataDict[@"expired"]]];
+    }];
+}
+
+- (NSDictionary *)dictionaryWithJsonString:(NSString *)jsonString
+{
+    if (jsonString == nil) {
+        return nil;
+    }
+    
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                        options:NSJSONReadingMutableContainers
+                                                          error:&err];
+    if(err)
+    {
+        NSLog(@"json解析失败：%@",err);
+        return nil;
+    }
+    return dic;
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
@@ -90,8 +142,6 @@
         picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
         [self presentViewController:picker animated:YES completion:nil];
     }
-    
-    
 }
 
 // 获取图片后操作
@@ -128,7 +178,7 @@
     
     // 配置文件路径
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"client" ofType:@"conf"];
-    [SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:self.filePath fileType:"jpg"];
+    //[SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:self.filePath fileType:"jpg"];
 
     int size = file_size2([filePath UTF8String]);
     NSLog(@"测试文件大小 == %d",size);
@@ -145,14 +195,27 @@
     [SYCommon FDFS_download:"group1/M00/00/92/wKh-oVukrWqERu0jAAAAAAAAAAA931.jpg" confPath:confPath filePath:filePath];
 }
 
-- (void)upLoad
+- (void)upLoad:(NSString *)myfileKey userId:(NSString *)myuserId timestamp:(NSString *)mytimestamp
 {
     // 配置文件路径
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"client" ofType:@"conf"];
     //要上传的文件路径
-    NSString *imgPath = [[NSBundle mainBundle] pathForResource:@"icon_demo" ofType:@"abc"];
+    NSString *imgPath = [[NSBundle mainBundle] pathForResource:@"icon_demo" ofType:@"jpg"];
     //[SYCommon FDFS_upload:NO file_id:"group1/M00/00/92/wKh-oVujXGqEGhoTAAAAAAAAAAA826.jpg" confPath:confPath filePath:imgPath fileType:"jpg"];
-    [SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:imgPath fileType:"jpg"];
+    
+    const char *filename = [imgPath UTF8String];
+    const char *clientname = [confPath UTF8String];
+    const char *fileKey = [myfileKey UTF8String];
+    const char *userId = [myuserId UTF8String];
+    const char *timestamp = [mytimestamp UTF8String];
+
+    int downfileSize = 0;
+    char file_id1[500] = {};
+    downfileSize = fdfs_getFileSize_filename(filename,"group1/M00/00/02/wKh-g1vAa-GEEJyyAAAAAAAAAAA905.jpg",clientname,fileKey,userId,timestamp);
+
+    printf("服务文件大小 == %d\n",downfileSize);
+    
+   // [SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:imgPath fileType:"jpg" fileKey:myfileKey userId:myuserId timestamp:mytimestamp];
 }
 
 // 检测网络

@@ -69,6 +69,13 @@ int storage_upload_by_filename_ex(ConnectionInfo *pTrackerServer, \
 		const char cmd, const char *local_filename, \
 		const char *file_ext_name, const FDFSMetaData *meta_list, \
 		const int meta_count, char *group_name, char *remote_filename);
+    
+int storage_get_connection(ConnectionInfo *pTrackerServer, \
+                                      ConnectionInfo **ppStorageServer, const byte cmd, \
+                                      const char *group_name, const char *filename, \
+                                      ConnectionInfo *pNewStorage, bool *new_connection);
+    
+
 
 /**
 * upload file to storage server (by file buff)
@@ -532,7 +539,7 @@ int storage_truncate_file(ConnectionInfo *pTrackerServer, \
 int storage_query_file_info_ex(ConnectionInfo *pTrackerServer, \
 			ConnectionInfo *pStorageServer,  \
 			const char *group_name, const char *filename, \
-			FDFSFileInfo *pFileInfo, const bool bSilence);
+			FDFSFileInfo *pFileInfo, const bool bSilence,const char *fileKey,const char *userId,const char *timestamp);
 
 
 #define fdfs_get_file_info(group_name, remote_filename, pFileInfo) \
@@ -559,9 +566,14 @@ int storage_file_exist(ConnectionInfo *pTrackerServer, \
 *       pFileInfo: return the file info
 * return: 0 success, !=0 fail, return the error code
 **/
+//int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
+//    const bool get_from_server, FDFSFileInfo *pFileInfo);
+    
 int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
-	const bool get_from_server, FDFSFileInfo *pFileInfo);
+                              const bool get_from_server, FDFSFileInfo *pFileInfo,const char *filename,const char *fileKey,const char *userId,const char *timestamp);
 
+int fdfs_get_file_info_ex1(const char *file_id, const bool get_from_server, \
+                               FDFSFileInfo *pFileInfo,const char *filename,const char *fileKey,const char *userId,const char *timestamp);
 
 #ifdef __cplusplus
 }

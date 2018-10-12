@@ -510,9 +510,12 @@ int storage_query_file_info_ex1(ConnectionInfo *pTrackerServer, \
 *       pFileInfo: return the file info
 * return: 0 success, !=0 fail, return the error code
 **/
-int fdfs_get_file_info_ex1(const char *file_id, const bool get_from_server, \
-		FDFSFileInfo *pFileInfo);
+//int fdfs_get_file_info_ex1(const char *file_id, const bool get_from_server, \
+//                           FDFSFileInfo *pFileInfo);
 
+int fdfs_get_file_info_ex1(const char *file_id, const bool get_from_server, \
+                               FDFSFileInfo *pFileInfo,const char *filename,const char *fileKey,const char *userId,const char *timestamp);
+    
 /**
 * check if file exist
 * params:

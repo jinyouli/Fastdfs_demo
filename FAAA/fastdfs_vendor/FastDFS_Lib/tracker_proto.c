@@ -436,8 +436,8 @@ ConnectionInfo *tracker_connect_server_ex(ConnectionInfo *pTrackerServer, \
 {
 	if (g_use_connection_pool)
 	{
-		return conn_pool_get_connection(&g_connection_pool,
-			pTrackerServer, err_no);
+        return conn_pool_get_connection(&g_connection_pool,
+                                        pTrackerServer, err_no);
 	}
 	else
 	{

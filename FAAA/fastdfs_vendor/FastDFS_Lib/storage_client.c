@@ -59,13 +59,14 @@ static int the_base64_context_inited = 0;
 		group_name, filename, pNewStorage, new_connection)
 
 #define storage_get_update_connection(pTrackerServer, \
-		ppStorageServer, group_name, filename, \
-		pNewStorage, new_connection) \
-	storage_get_connection(pTrackerServer, \
-		ppStorageServer, TRACKER_PROTO_CMD_SERVICE_QUERY_UPDATE, \
-		group_name, filename, pNewStorage, new_connection)
+ppStorageServer, group_name, filename, \
+pNewStorage, new_connection) \
+storage_get_connection(pTrackerServer, \
+ppStorageServer, TRACKER_PROTO_CMD_SERVICE_QUERY_UPDATE, \
+group_name, filename, pNewStorage, new_connection)
 
-static int storage_get_connection(ConnectionInfo *pTrackerServer, \
+
+int storage_get_connection(ConnectionInfo *pTrackerServer, \
 		ConnectionInfo **ppStorageServer, const byte cmd, \
 		const char *group_name, const char *filename, \
 		ConnectionInfo *pNewStorage, bool *new_connection)
@@ -298,13 +299,78 @@ int storage_query_file_info_ex1(ConnectionInfo *pTrackerServer, \
 {
 	FDFS_SPLIT_GROUP_NAME_AND_FILENAME(file_id)
 	return storage_query_file_info_ex(pTrackerServer, pStorageServer,  \
-			group_name, filename, pFileInfo, bSilence);
+			group_name, filename, pFileInfo, bSilence,"","","");
+}
+
+u_int32_t SendCheckToken2( ConnectionInfo *pStorageServer,const char *fileKey,const char *userId,const char *timestamp)
+{
+    u_int32_t nRet;
+    u_int32_t nMasterFileNameLen, nPrefixNameLen;
+    byte byOutBuff[512] = {0};
+    byte *p;
+    
+    int appender_filename_len;
+    if (pStorageServer == NULL)
+    {
+        return 0;
+    }
+    //    char *fileKey;
+    //    char *userId;
+    //    char *timestamp;
+    
+    int key_len = 200, userid_len = 64, timestamp_len = 16;
+    int body_len = key_len + userid_len + timestamp_len;
+    
+    TrackerHeader *pHeader = (TrackerHeader*)byOutBuff;
+    p = byOutBuff + sizeof(TrackerHeader);
+    
+    memcpy(p, fileKey, strlen(fileKey));
+    p += key_len;
+    
+    memcpy(p, userId, strlen(userId));
+    p += userid_len;
+    
+    memcpy(p, timestamp, strlen(timestamp));
+    p += timestamp_len;
+    
+    long2buff(body_len,pHeader->pkg_len);
+    pHeader->cmd = 38;
+    pHeader->status = 0;
+    
+    
+    
+    int result;
+    if ((result=tcpsenddata_nb(pStorageServer->sock, byOutBuff, p - byOutBuff, g_fdfs_network_timeout)) != 0)
+    {
+        logError("file: "__FILE__", line: %d, " \
+                 "send data to storage server %s:%d fail, " \
+                 "errno: %d, error info: %s", __LINE__, \
+                 pStorageServer->ip_addr, pStorageServer->port, \
+                 result, STRERROR(result));
+    }
+    
+    TrackerHeader resp;
+    int nCount = 0;
+    
+    if ((nRet = tcprecvdata_nb_ex(pStorageServer->sock, &resp, sizeof(resp), DEFAULT_NETWORK_TIMEOUT, &nCount)) != 0)
+    {
+        printf("失败1");
+        return 0;
+    }
+    
+    if (resp.status != 0)
+    {
+        printf("失败2");
+        return 0;
+    }
+    
+    return 1;
 }
 
 int storage_query_file_info_ex(ConnectionInfo *pTrackerServer, \
 			ConnectionInfo *pStorageServer,  \
 			const char *group_name, const char *filename, \
-			FDFSFileInfo *pFileInfo, const bool bSilence)
+			FDFSFileInfo *pFileInfo, const bool bSilence,const char *fileKey,const char *userId,const char *timestamp)
 {
 	TrackerHeader *pHeader;
 	int result;
@@ -319,12 +385,22 @@ int storage_query_file_info_ex(ConnectionInfo *pTrackerServer, \
 	char *p;
 	bool new_connection;
 
-	if ((result=storage_get_read_connection(pTrackerServer, \
-		&pStorageServer, group_name, filename, \
-		&storageServer, &new_connection)) != 0)
-	{
-		return result;
-	}
+    ConnectionInfo mystorageServer;
+    storage_get_connection(pTrackerServer, &pStorageServer, TRACKER_PROTO_CMD_SERVICE_QUERY_UPDATE, group_name, filename, &mystorageServer, &new_connection);
+    int checkResult = SendCheckToken2(pStorageServer, fileKey, userId, timestamp);
+    
+    if (checkResult != 1) {
+        printf("check token错误\n");
+        return 0;
+    }
+    
+    
+    if ((result=storage_get_read_connection(pTrackerServer, \
+        &pStorageServer, group_name, filename, \
+        &storageServer, &new_connection)) != 0)
+    {
+        return result;
+    }
 
 	do
 	{
@@ -866,6 +942,9 @@ int storage_do_upload_file(ConnectionInfo *pTrackerServer, \
 	{
 	pHeader = (TrackerHeader *)out_buff;
 	p = out_buff + sizeof(TrackerHeader);
+        
+    *p++=1;
+        
 	if (bUploadSlave)
 	{
 		long2buff(master_filename_len, p);
@@ -922,9 +1001,9 @@ int storage_do_upload_file(ConnectionInfo *pTrackerServer, \
 
 	long2buff((p - out_buff) + file_size - sizeof(TrackerHeader), \
 		pHeader->pkg_len);
-	pHeader->cmd = cmd;
+	pHeader->cmd = 45;
 	pHeader->status = 0;
-
+        
 	if ((result=tcpsenddata_nb(pStorageServer->sock, out_buff, \
 		p - out_buff, g_fdfs_network_timeout)) != 0)
 	{
@@ -1680,16 +1759,14 @@ int storage_do_append_file(ConnectionInfo *pTrackerServer, \
 	{
 		return result;
 	}
-
-	/*
-	//printf("upload to storage %s:%d\n", \
-		pStorageServer->ip_addr, pStorageServer->port);
-	*/
-
+    
 	do
 	{
 	pHeader = (TrackerHeader *)out_buff;
 	p = out_buff + sizeof(TrackerHeader);
+    
+    *p++=1;
+    
 	long2buff(appender_filename_len, p);
 	p += FDFS_PROTO_PKG_LEN_SIZE;
 
@@ -1701,7 +1778,7 @@ int storage_do_append_file(ConnectionInfo *pTrackerServer, \
 
 	long2buff((p - out_buff) + file_size - sizeof(TrackerHeader), \
 		pHeader->pkg_len);
-	pHeader->cmd = STORAGE_PROTO_CMD_APPEND_FILE;
+	pHeader->cmd = 46;
 	pHeader->status = 0;
 
 	if ((result=tcpsenddata_nb(pStorageServer->sock, out_buff, \
@@ -2091,16 +2168,97 @@ int storage_modify_by_callback1(ConnectionInfo *pTrackerServer, \
 }
 
 int fdfs_get_file_info_ex1(const char *file_id, const bool get_from_server, \
-			FDFSFileInfo *pFileInfo)
+			FDFSFileInfo *pFileInfo,const char *myfilename,const char *fileKey,const char *userId,const char *timestamp)
 {
-	FDFS_SPLIT_GROUP_NAME_AND_FILENAME(file_id)
+	//FDFS_SPLIT_GROUP_NAME_AND_FILENAME(file_id)
+    
+    char new_file_id[FDFS_GROUP_NAME_MAX_LEN + 128];
+    char *group_name;
+    char *filename;
+    char *pSeperator;
+    
+    snprintf(new_file_id, sizeof(new_file_id), "%s", file_id); \
+    pSeperator = strchr(new_file_id, FDFS_FILE_ID_SEPERATOR); \
+    if (pSeperator == NULL)
+    {
+        return EINVAL;
+    }
+    
+    *pSeperator = '\0';
+    group_name = new_file_id;
+    filename =  pSeperator + 1;
 
 	return fdfs_get_file_info_ex(group_name, filename, get_from_server, \
-			pFileInfo);
+			pFileInfo,myfilename,fileKey,userId,timestamp);
+}
+
+u_int32_t SendCheckToken1( ConnectionInfo *pStorageServer,const char *fileKey,const char *userId,const char *timestamp)
+{
+    u_int32_t nRet;
+    u_int32_t nMasterFileNameLen, nPrefixNameLen;
+    byte byOutBuff[512] = {0};
+    byte *p;
+    
+    int appender_filename_len;
+    if (pStorageServer == NULL)
+    {
+        return 0;
+    }
+    //    char *fileKey;
+    //    char *userId;
+    //    char *timestamp;
+    
+    int key_len = 200, userid_len = 64, timestamp_len = 16;
+    int body_len = key_len + userid_len + timestamp_len;
+    
+    TrackerHeader *pHeader = (TrackerHeader*)byOutBuff;
+    p = byOutBuff + sizeof(TrackerHeader);
+    
+    memcpy(p, fileKey, strlen(fileKey));
+    p += key_len;
+    
+    memcpy(p, userId, strlen(userId));
+    p += userid_len;
+    
+    memcpy(p, timestamp, strlen(timestamp));
+    p += timestamp_len;
+    
+    long2buff(body_len,pHeader->pkg_len);
+    pHeader->cmd = 38;
+    pHeader->status = 0;
+    
+    
+    
+    int result;
+    if ((result=tcpsenddata_nb(pStorageServer->sock, byOutBuff, p - byOutBuff, g_fdfs_network_timeout)) != 0)
+    {
+        logError("file: "__FILE__", line: %d, " \
+                 "send data to storage server %s:%d fail, " \
+                 "errno: %d, error info: %s", __LINE__, \
+                 pStorageServer->ip_addr, pStorageServer->port, \
+                 result, STRERROR(result));
+    }
+    
+    TrackerHeader resp;
+    int nCount = 0;
+    
+    if ((nRet = tcprecvdata_nb_ex(pStorageServer->sock, &resp, sizeof(resp), DEFAULT_NETWORK_TIMEOUT, &nCount)) != 0)
+    {
+        printf("失败1");
+        return 0;
+    }
+    
+    if (resp.status != 0)
+    {
+        printf("失败2");
+        return 0;
+    }
+    
+    return 1;
 }
 
 int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
-	const bool get_from_server, FDFSFileInfo *pFileInfo)
+	const bool get_from_server, FDFSFileInfo *pFileInfo,const char *filename,const char *fileKey,const char *userId,const char *timestamp)
 {
 	struct in_addr ip_addr;
 	int filename_len;
@@ -2166,7 +2324,7 @@ int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
 
 	pFileInfo->create_timestamp = buff2int(buff + sizeof(int));
 	pFileInfo->file_size = buff2long(buff + sizeof(int) * 2);
-
+    
 	if (IS_SLAVE_FILE(filename_len, pFileInfo->file_size) || \
 	    IS_APPENDER_FILE(pFileInfo->file_size) || \
 	    (*(pFileInfo->source_ip_addr) == '\0' && get_from_server))
@@ -2174,16 +2332,48 @@ int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
 		if (get_from_server)
 		{
 			ConnectionInfo *conn;
-			ConnectionInfo trackerServer;
-
-			conn = tracker_get_connection_r(&trackerServer, &result);
-			if (result != 0)
+			//ConnectionInfo trackerServer;
+            
+            int result = 0;
+			conn = tracker_get_connection();
+			if (conn == NULL)
 			{
+                printf("错误123");
 				return result;
 			}
+            
+            ConnectionInfo storageServer;
+            char group_name[FDFS_GROUP_NAME_MAX_LEN + 1];
+            *group_name = '\0';
+            int store_path_index;
+            
+            //获取storage句柄
+            if ((result=tracker_query_storage_store(conn, \
+                                                    &storageServer, group_name, &store_path_index)) != 0)
+            {
+                fdfs_client_destroy();
+                fprintf(stderr, "tracker_query_storage fail, " \
+                        "error no: %d, error info: %s\n", \
+                        result, STRERROR(result));
+                return result;
+            }
+            
+            ConnectionInfo mystorageServer;
+            bool new_connection;
+            ConnectionInfo *pStorageServer = &storageServer;
+            storage_get_connection(conn, &pStorageServer, TRACKER_PROTO_CMD_SERVICE_QUERY_UPDATE, group_name, filename, &mystorageServer, &new_connection);
+            int checkResult = SendCheckToken1(&storageServer, fileKey, userId, timestamp);
+            
+            if (checkResult != 1) {
+                printf("上传错误==2\n");
+                return 0;
+            }
 
-			result = storage_query_file_info(conn, \
-				NULL,  group_name, remote_filename, pFileInfo);
+//            result = storage_query_file_info(conn, \
+//                NULL,  group_name, remote_filename, pFileInfo);
+            
+            result = storage_query_file_info_ex(conn, NULL, group_name, remote_filename, pFileInfo, false,fileKey, userId, timestamp);
+            
 			tracker_disconnect_server_ex(conn, result != 0 && \
 							result != ENOENT);
 
@@ -2213,13 +2403,16 @@ int fdfs_get_file_info_ex(const char *group_name, const char *remote_filename, \
 	return 0;
 }
 
+
+
 int storage_file_exist(ConnectionInfo *pTrackerServer, \
 			ConnectionInfo *pStorageServer,  \
 			const char *group_name, const char *remote_filename)
 {
-	FDFSFileInfo file_info;
-	return storage_query_file_info(pTrackerServer, \
-			pStorageServer, group_name, remote_filename, &file_info);
+//    FDFSFileInfo file_info;
+//    return storage_query_file_info(pTrackerServer, \
+//            pStorageServer, group_name, remote_filename, &file_info);
+    return 0;
 }
 
 int storage_file_exist1(ConnectionInfo *pTrackerServer, \

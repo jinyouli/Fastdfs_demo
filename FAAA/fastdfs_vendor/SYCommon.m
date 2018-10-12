@@ -21,7 +21,8 @@ static const int DOWNLOAD_NUM = 256000;
     
     // 要下载的文件
     char *file_id = downloadFileId;
-    totalFilesize = fdfs_getFileSize_filename([filePath UTF8String],file_id,clientname);
+    //totalFilesize = fdfs_getFileSize_filename([filePath UTF8String],file_id,clientname);
+    totalFilesize = 0;
     
     int downfileSize = 0;
     if ([[NSFileManager defaultManager] fileExistsAtPath:filePath] == YES) {
@@ -76,29 +77,35 @@ static const int DOWNLOAD_NUM = 256000;
     //    NSLog(@"存在 == %d",downfileSize);
 }
 
-+ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath fileType:(char *)fileType
++ (void)FDFS_upload:(BOOL)isFirst file_id:(char *)uploadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath fileType:(char *)fileType fileKey:(NSString *)myfileKey userId:(NSString *)myuserId timestamp:(NSString *)mytimestamp
 {
     int retn = 0;
     
     const char *filename = [filePath UTF8String];
     const char *clientname = [confPath UTF8String];
     // char file_id[500] = {0};
+    const char *fileKey = [myfileKey UTF8String];
+    const char *userId = [myuserId UTF8String];
+    const char *timestamp = [mytimestamp UTF8String];
     
     char file_id1[500] = {};
     char buff[100];
     
+    ConnectionInfo pstorageServer;
     if (isFirst) {
-        fdfs_append_by_filename(filename,file_id1,clientname,buff,0,fileType);
+        fdfs_append_by_filename(filename,file_id1,clientname,buff,0,fileType,fileKey,userId,timestamp,&pstorageServer);
     }
     else{
         const char *src = uploadFileId;
         strncpy(file_id1, src, strlen(uploadFileId));
     }
-    //printf("要上传的fileId == %s\n",file_id1);
+    printf("要上传的fileId == %s\n",file_id1);
+    
+    
     
     int fileSize = file_size2(filename);
     int downfileSize = 0;
-    downfileSize = fdfs_getFileSize_filename(filename,file_id1,clientname);
+    downfileSize = fdfs_getFileSize_filename(filename,file_id1,clientname,fileKey,userId,timestamp);
     
     printf("本地文件大小 == %d\n",fileSize);
     int totalFilesize = 0;
@@ -138,10 +145,12 @@ static const int DOWNLOAD_NUM = 256000;
             
             if (i == fileSize / DOWNLOAD_NUM - 1) {
                 
-                offset = fdfs_getFileSize_filename(filename,file_id1,clientname);
+                offset = fdfs_getFileSize_filename(filename,file_id1,clientname,fileKey,userId,timestamp);
+                
+                
                 totalFileSize = totalFilesize - offset;
                 
-                retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + offset,totalFileSize);
+                retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + offset,totalFileSize,fileKey,userId,timestamp);
                 if(0 != retn)
                 {
                     printf("upload_by_filename err,errno = %d\n",retn);
@@ -151,7 +160,7 @@ static const int DOWNLOAD_NUM = 256000;
                 }
                 
             }else{
-                retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + downfileSize + i * DOWNLOAD_NUM,DOWNLOAD_NUM);
+                retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + downfileSize + i * DOWNLOAD_NUM,DOWNLOAD_NUM,fileKey,userId,timestamp);
                 if(0 != retn)
                 {
                     printf("upload_by_filename err,errno = %d\n",retn);
@@ -162,7 +171,7 @@ static const int DOWNLOAD_NUM = 256000;
         }
     }
     else{
-        retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + downfileSize,fileSize);
+        retn = fdfs_uploadAppend_by_filename(filename,file_id1,clientname,uploadBuff + downfileSize,fileSize,fileKey,userId,timestamp);
         if(0 != retn)
         {
             printf("upload_by_filename err,errno = %d\n",retn);
@@ -173,6 +182,8 @@ static const int DOWNLOAD_NUM = 256000;
         }
         printf("file_id = %s\n",file_id1);
     }
+    
+    
 }
 
 

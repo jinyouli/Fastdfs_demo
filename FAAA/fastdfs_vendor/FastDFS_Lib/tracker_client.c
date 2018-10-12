@@ -846,10 +846,21 @@ int tracker_query_storage_store_without_group(ConnectionInfo *pTrackerServer,
 	memset(pStorageServer, 0, sizeof(ConnectionInfo));
 	pStorageServer->sock = -1;
 
+    
 	memset(&header, 0, sizeof(header));
+    long2buff(1,header.pkg_len);
 	header.cmd = TRACKER_PROTO_CMD_SERVICE_QUERY_STORE_WITHOUT_GROUP_ONE;
-	if ((result=tcpsenddata_nb(conn->sock, &header, \
-			sizeof(header), g_fdfs_network_timeout)) != 0)
+    
+    byte qos = 0;
+    
+    char out_buff[512] = { 0 };
+    int out_bytes = sizeof(TrackerHeader) + sizeof(byte);
+    memcpy(out_buff,&header, sizeof(header));
+    memcpy(out_buff+ sizeof(header), &qos, sizeof(qos));
+    
+    
+	if ((result=tcpsenddata_nb(conn->sock, &out_buff, \
+			out_bytes, g_fdfs_network_timeout)) != 0)
 	{
 		logError("file: "__FILE__", line: %d, " \
 			"send data to tracker server %s:%d fail, " \

@@ -7,9 +7,10 @@
 //
 
 #include "FDFS_Upload_API.h"
+#include "fdfs_global.h"
+#include "sockopt.h"
 
-
-int fdfs_download_by_filename(char *file_id, const char *clientName,const char *filepath)
+int fdfs_download_by_filename(char *file_id, const char *clientName,const char *filepath,const char *fileKey,const char *userId,const char *timestamp)
 {
     char group_name[FDFS_GROUP_NAME_MAX_LEN + 1];
     ConnectionInfo *pTrackerServer;
@@ -32,7 +33,6 @@ int fdfs_download_by_filename(char *file_id, const char *clientName,const char *
     }
     
     *group_name = '\0';
-    
     //获取storage句柄
     if ((result=tracker_query_storage_store(pTrackerServer, \
                                             &storageServer, group_name, &store_path_index)) != 0)
@@ -75,6 +75,7 @@ int fdfs_download_by_filename(char *file_id, const char *clientName,const char *
 
     return result;
 }
+
 
 int fdfs_download_append_by_filename(char *file_id, const char *clientName,const char *filepath,int buff, int offset)
 {
@@ -148,7 +149,7 @@ int fdfs_download_append_by_filename(char *file_id, const char *clientName,const
     
     tracker_disconnect_server_ex(pTrackerServer, true);
     fdfs_client_destroy();
-    
+
     return result;
 }
 

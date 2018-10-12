@@ -19,7 +19,6 @@
 #include "fdfs_client.h"
 #include "logger.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

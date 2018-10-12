@@ -18,16 +18,18 @@
 #include <sys/stat.h>
 #include "fdfs_client.h"
 #include "logger.h"
-
+#include "storage_client.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
     int fdfs_upload_by_filename(const char *filename,char *file_id, const char *clientName);
-    int fdfs_getFileSize_filename(const char *filename, char *file_id, const char *clientName);
-    int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize, char *fileType);
-    int fdfs_uploadAppend_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize);
+    int fdfs_getFileSize_filename(const char *filename, char *file_id, const char *clientName,const char *fileKey,const char *userId,const char *timestamp);
+    int fdfs_append_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize, char *fileType, const char *fileKey,const char *userId,const char *timestamp,ConnectionInfo *pstorageServer);
+    int fdfs_uploadAppend_by_filename(const char *filename, char *file_id, const char *clientName,char *fileBuff,int fileSize,const char *fileKey,const char *userId,const char *timestamp);
     int file_size2(const char* filename);
+    int fdfs_upload_by_filename2(const char *filename, char *file_id, const char *clientName, const char *fileKey,const char *userId,const char *timestamp);
+    u_int32_t SendCheckToken( ConnectionInfo *pStorageServer,const char *fileKey,const char *userId,const char *timestamp);
     
 #ifdef __cplusplus
 }
