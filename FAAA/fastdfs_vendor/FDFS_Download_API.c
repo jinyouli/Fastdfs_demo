@@ -77,7 +77,7 @@ int fdfs_download_by_filename(char *file_id, const char *clientName,const char *
 }
 
 
-int fdfs_download_append_by_filename(char *file_id, const char *clientName,const char *filepath,int buff, int offset)
+int fdfs_download_append_by_filename(char *file_id, const char *clientName,const char *filepath,int buff, int offset, const char *fileKey,const char *userId,const char *timestamp)
 {
     char group_name[FDFS_GROUP_NAME_MAX_LEN + 1];
     ConnectionInfo *pTrackerServer;
@@ -111,6 +111,18 @@ int fdfs_download_append_by_filename(char *file_id, const char *clientName,const
                 result, STRERROR(result));
         return result;
     }
+    
+    ConnectionInfo mystorageServer;
+    bool new_connection;
+    ConnectionInfo *pStorageServer = &storageServer;
+    storage_get_connection(pTrackerServer, &pStorageServer, TRACKER_PROTO_CMD_SERVICE_QUERY_UPDATE, group_name, NULL, &mystorageServer, &new_connection);
+    int checkResult = SendCheckToken(&storageServer, fileKey, userId, timestamp);
+    
+    if (checkResult != 1) {
+        printf("上传错误==2\n");
+        return 0;
+    }
+    
     
     char *file_buff;
     int64_t file_size;

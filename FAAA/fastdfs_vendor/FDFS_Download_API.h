@@ -18,12 +18,13 @@
 #include <sys/stat.h>
 #include "fdfs_client.h"
 #include "logger.h"
+#include "FDFS_Upload_API.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
     int fdfs_download_by_filename(char *file_id, const char *clientName,const char *filepath);
-    int fdfs_download_append_by_filename(char *file_id, const char *clientName,const char *filepath,int buff, int offset);
+    int fdfs_download_append_by_filename(char *file_id, const char *clientName,const char *filepath,int buff, int offset, const char *fileKey,const char *userId,const char *timestamp);
 #ifdef __cplusplus
 }
 #endif

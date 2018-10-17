@@ -16,6 +16,10 @@
 @property (nonatomic, copy) NSString *filePath;
 @property (weak, nonatomic) IBOutlet UITextField *textfield;
 
+@property (nonatomic, copy) NSString *fileKey;
+@property (nonatomic, copy) NSString *userId;
+@property (nonatomic, copy) NSString *timestamp;
+
 @end
 
 @implementation ViewController
@@ -63,7 +67,15 @@
         
         //fdfs_upload_by_filename2(filename, file_id, clientname, fileKey, userId, timestamp);
         
-        [self upLoad:[NSString stringWithFormat:@"%@",dataDict[@"fileKey"]] userId:[NSString stringWithFormat:@"%@",dataDict[@"userId"]] timestamp:[NSString stringWithFormat:@"%@",dataDict[@"expired"]]];
+        self.fileKey = [NSString stringWithFormat:@"%@",dataDict[@"fileKey"]];
+        self.userId = [NSString stringWithFormat:@"%@",dataDict[@"userId"]];
+        self.timestamp = [NSString stringWithFormat:@"%@",dataDict[@"expired"]];
+        
+        [self downLoad:[NSString stringWithFormat:@"%@",dataDict[@"fileKey"]] userId:[NSString stringWithFormat:@"%@",dataDict[@"userId"]] timestamp:[NSString stringWithFormat:@"%@",dataDict[@"expired"]]];
+        
+        
+        
+       // [self upLoad:[NSString stringWithFormat:@"%@",dataDict[@"fileKey"]] userId:[NSString stringWithFormat:@"%@",dataDict[@"userId"]] timestamp:[NSString stringWithFormat:@"%@",dataDict[@"expired"]]];
     }];
 }
 
@@ -119,7 +131,7 @@
     }
     
     if (self.textfield.text.length > 0) {
-        [SYCommon FDFS_download:[self.textfield.text UTF8String] confPath:confPath filePath:filePath];
+        [SYCommon FDFS_download:[self.textfield.text UTF8String] confPath:confPath filePath:filePath fileKey:self.fileKey userId:self.userId timestamp:self.timestamp];
     }
     else{
         [self showAlert:@"请输入文件id"];
@@ -186,13 +198,13 @@
     [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)downLoad
+- (void)downLoad:(NSString *)myfileKey userId:(NSString *)myuserId timestamp:(NSString *)mytimestamp
 {
     // 配置文件路径
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"client" ofType:@"conf"];
     // 设置下载路径
     NSString *filePath = [NSHomeDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"Documents/%@",@"Hello.png"]];
-    [SYCommon FDFS_download:"group1/M00/00/92/wKh-oVukrWqERu0jAAAAAAAAAAA931.jpg" confPath:confPath filePath:filePath];
+    [SYCommon FDFS_download:"group1/M00/00/02/wKh-g1vGpQmENIl6AAAAAAAAAAA145.jpg" confPath:confPath filePath:filePath fileKey:myfileKey userId:myuserId timestamp:mytimestamp];
 }
 
 - (void)upLoad:(NSString *)myfileKey userId:(NSString *)myuserId timestamp:(NSString *)mytimestamp
@@ -203,6 +215,7 @@
     NSString *imgPath = [[NSBundle mainBundle] pathForResource:@"icon_demo" ofType:@"jpg"];
     //[SYCommon FDFS_upload:NO file_id:"group1/M00/00/92/wKh-oVujXGqEGhoTAAAAAAAAAAA826.jpg" confPath:confPath filePath:imgPath fileType:"jpg"];
     
+    /*
     const char *filename = [imgPath UTF8String];
     const char *clientname = [confPath UTF8String];
     const char *fileKey = [myfileKey UTF8String];
@@ -214,8 +227,9 @@
     downfileSize = fdfs_getFileSize_filename(filename,"group1/M00/00/02/wKh-g1vAa-GEEJyyAAAAAAAAAAA905.jpg",clientname,fileKey,userId,timestamp);
 
     printf("服务文件大小 == %d\n",downfileSize);
+     */
     
-   // [SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:imgPath fileType:"jpg" fileKey:myfileKey userId:myuserId timestamp:mytimestamp];
+    [SYCommon FDFS_upload:YES file_id:"" confPath:confPath filePath:imgPath fileType:"jpg" fileKey:myfileKey userId:myuserId timestamp:mytimestamp];
 }
 
 // 检测网络

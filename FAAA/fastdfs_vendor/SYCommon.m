@@ -13,11 +13,15 @@ static const int DOWNLOAD_NUM = 256000;
 @implementation SYCommon
 
 // 下载文件
-+ (void)FDFS_download:(char *)downloadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath
++ (void)FDFS_download:(char *)downloadFileId confPath:(NSString *)confPath filePath:(NSString *)filePath fileKey:(NSString *)myfileKey userId:(NSString *)myuserId timestamp:(NSString *)mytimestamp
 {
     int retn = 0;
     int totalFilesize = 0;
     const char *clientname = [confPath UTF8String];
+    
+    const char *fileKey = [myfileKey UTF8String];
+    const char *userId = [myuserId UTF8String];
+    const char *timestamp = [mytimestamp UTF8String];
     
     // 要下载的文件
     char *file_id = downloadFileId;
@@ -50,7 +54,7 @@ static const int DOWNLOAD_NUM = 256000;
                 totalFileSize = DOWNLOAD_NUM;
             }
             
-            retn = fdfs_download_append_by_filename(file_id,clientname,[filePath UTF8String],totalFileSize, offset);
+            retn = fdfs_download_append_by_filename(file_id, clientname, [filePath UTF8String], totalFileSize, offset, fileKey, userId, timestamp);
             if(0 != retn)
             {
                 printf("download_by_filename err,errno = %d\n",retn);
@@ -63,7 +67,7 @@ static const int DOWNLOAD_NUM = 256000;
         }
     }
     else{
-        retn = fdfs_download_append_by_filename(file_id, clientname, [filePath UTF8String], fileSize, downfileSize);
+        retn = fdfs_download_append_by_filename(file_id, clientname, [filePath UTF8String], fileSize, downfileSize, fileKey, userId, timestamp);
         if(0 != retn)
         {
             printf("download_by_filename err,errno = %d\n",retn);
@@ -100,9 +104,7 @@ static const int DOWNLOAD_NUM = 256000;
         strncpy(file_id1, src, strlen(uploadFileId));
     }
     printf("要上传的fileId == %s\n",file_id1);
-    
-    
-    
+
     int fileSize = file_size2(filename);
     int downfileSize = 0;
     downfileSize = fdfs_getFileSize_filename(filename,file_id1,clientname,fileKey,userId,timestamp);
